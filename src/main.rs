@@ -1,4 +1,5 @@
 mod tests;
+mod intcode;
 
 use std::iter;
 use std::fs::File;
@@ -11,15 +12,29 @@ fn module_fuel_req(mass: i32) -> i32 {
     .sum()
 }
 
+
+
 fn main() -> io::Result<()> {
-    let file = File::open("data/module_mass.txt")?;
-    let reader = BufReader::new(file);
-    let total_fuel_req: io::Result<i32> = reader
+    let mass_file = File::open("data/module_mass.txt")?;
+    let mass_reader = BufReader::new(mass_file);
+    let total_fuel_req: io::Result<i32> = mass_reader
         .lines()
         .try_fold(0, |acc, line| {
             Ok(acc + module_fuel_req(line?.parse::<i32>().unwrap()))
         });
-
     println!("Total fuel requirement: {}", total_fuel_req?);
+
+    let intcode_file = File::open("data/intcode_prog.txt")?;
+    let intcode_reader = BufReader::new(intcode_file);
+    let code: Vec<_> = intcode_reader
+        .split(b',')
+        .map(|x| {
+                String::from_utf8(x.unwrap()).unwrap().parse::<i32>().unwrap()
+        })
+        .collect();
+
+    let mut machine = intcode::Machine::new(code);
+    println!("code result: {}", machine.run().unwrap());
+
     Ok(())
 }
