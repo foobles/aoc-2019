@@ -1,3 +1,5 @@
+mod tests;
+
 use std::mem;
 
 pub struct Machine {
@@ -36,7 +38,7 @@ impl Machine {
 
     pub fn run(&mut self) -> Result<i32, Error> {
         while self.cur < self.code.len() {
-            println!("CUR={:02} | {:?}", self.cur, self.code);
+            //println!("CUR={:02} | {:?}", self.cur, self.code);
             match self.code[self.cur] {
                 1 => self.add()?,
                 2 => self.mul()?,
