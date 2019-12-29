@@ -48,29 +48,32 @@ impl FromStr for AaVec {
     }
 }
 
-fn for_each_wire_point<F>(wire: &[AaVec], mut op: F)
-    where
-        F: FnMut((i32, i32))
-{
-    let (mut cx, mut cy) = (0, 0);
-    for &v in wire {
-        let (dx, dy) = v.dir.into_coords();
-        for i in 0..v.magnitude {
-            cx += dx;
-            cy += dy;
-            op((cx, cy));
+pub struct Wire {
+    path: Vec<AaVec>,
+}
+
+impl Wire {
+    fn for_each_point<F: FnMut((i32, i32))>(&self, mut op: F) {
+        let (mut cx, mut cy) = (0, 0);
+        for &v in &self.path {
+            let (dx, dy) = v.dir.into_coords();
+            for i in 0..v.magnitude {
+                cx += dx;
+                cy += dy;
+                op((cx, cy));
+            }
         }
     }
 }
 
-pub fn closest_wire_intersection(wire_a: &[AaVec], wire_b: &[AaVec]) -> Option<i32> {
+pub fn closest_wire_intersection(wire_a: &Wire, wire_b: &Wire) -> Option<i32> {
     let mut points = HashSet::new();
     let (mut cx, mut cy) = (0, 0);
-    for_each_wire_point(wire_a, |p| {
+    wire_a.for_each_point(|p| {
         points.insert(p);
     });
     let mut min_distance: Option<i32> = None;
-    for_each_wire_point(wire_b, |p| {
+    wire_b.for_each_point(|p| {
         if points.contains(&p) {
             let cur_distance = p.0.abs() + p.1.abs();
             min_distance = min_distance
