@@ -1,7 +1,7 @@
 mod tests;
 
 use std::str::FromStr;
-use std::collections::HashSet;
+use std::collections::HashMap;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 enum Dir {
@@ -67,15 +67,19 @@ impl Wire {
 }
 
 pub fn closest_wire_intersection(wire_a: &Wire, wire_b: &Wire) -> Option<i32> {
-    let mut points = HashSet::new();
+    let mut points = HashMap::new();
     let (mut cx, mut cy) = (0, 0);
+    let mut cur_travelled = 0;
     wire_a.for_each_point(|p| {
-        points.insert(p);
+        cur_travelled += 1;
+        points.insert(p, cur_travelled);
     });
     let mut min_distance: Option<i32> = None;
+    cur_travelled = 0;
     wire_b.for_each_point(|p| {
-        if points.contains(&p) {
-            let cur_distance = p.0.abs() + p.1.abs();
+        cur_travelled += 1;
+        if let Some(&dist) = points.get(&p) {
+            let cur_distance = cur_travelled + dist;
             min_distance = min_distance
                 .map(|m| m.min(cur_distance))
                 .or(Some(cur_distance));
