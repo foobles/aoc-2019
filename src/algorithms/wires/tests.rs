@@ -29,3 +29,31 @@ fn parse_wire() {
             .collect::<Vec<_>>()
     );
 }
+
+fn test_intersection(dist: Option<i32>, w1: &str, w2: &str) {
+    assert_eq!(
+        dist,
+        closest_wire_intersection(
+            &w1.parse().unwrap(),
+            &w2.parse().unwrap()
+        )
+    );
+}
+
+#[test]
+fn wires_intersect() {
+    test_intersection(
+        Some(159),
+        "R75,D30,R83,U83,L12,D49,R71,U7,L72",
+        "U62,R66,U55,R34,D71,R55,D58,R83"
+    );
+}
+
+#[test]
+fn wires_not_intersect() {
+    test_intersection(
+        None,
+        "R75,D30",
+        "U62,R66"
+    );
+}
