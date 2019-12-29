@@ -23,13 +23,17 @@ macro_rules! access_args {
 }
 
 macro_rules! access_arg {
-    ($machine:expr, let $name:ident = *arg $idx:expr) => {
-        let $name = $machine.get($machine.get_arg($idx)?)?;
+    ($machine:expr, let $binding:pat = *arg $idx:expr) => {
+        let $binding = $machine.get($machine.get_arg($idx)?)?;
     };
-    ($machine:expr, let $name:ident = arg $idx:expr) => {
-        let $name = $machine.get_arg($idx)?;
+    ($machine:expr, let $binding:pat = arg $idx:expr) => {
+        let $binding = $machine.get_arg($idx)?;
     }
 }
+
+const OP_ADD: i32 = 1;
+const OP_MUL: i32 = 2;
+const OP_END: i32 = 99;
 
 impl Machine {
     pub fn new(code: Vec<i32>) -> Self {
@@ -40,9 +44,9 @@ impl Machine {
         while self.cur < self.code.len() {
             //println!("CUR={:02} | {:?}", self.cur, self.code);
             match self.code[self.cur] {
-                1 => self.add()?,
-                2 => self.mul()?,
-                99 => break,
+                OP_ADD => self.add()?,
+                OP_MUL => self.mul()?,
+                OP_END => break,
                 n => return Err(Error::UnknownOpcode{ opcode: n })
             }
         }
