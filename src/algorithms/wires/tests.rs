@@ -20,6 +20,12 @@ fn algo_parse_aa_vec_no_magnitude() {
 }
 
 #[test]
-fn algo_wire_intersection() {
-
+fn parse_wire() {
+    assert_eq!(
+        "L32,U20,R16,D50".parse::<Wire>().unwrap().path,
+        ["L32", "U20", "R16", "D50"]
+            .iter()
+            .map(|&x| x.parse::<AaVec>().unwrap())
+            .collect::<Vec<_>>()
+    );
 }

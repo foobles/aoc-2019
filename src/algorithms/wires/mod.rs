@@ -83,3 +83,18 @@ pub fn closest_wire_intersection(wire_a: &Wire, wire_b: &Wire) -> Option<i32> {
     });
     min_distance
 }
+
+#[derive(Copy, Clone, Debug)]
+pub struct ParseWireError;
+
+impl FromStr for Wire {
+    type Err = ParseWireError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        s.split(',')
+            .map(|x| x.parse())
+            .collect::<Result<_, _>>()
+            .map(|path| Wire{ path })
+            .or(Err(ParseWireError))
+    }
+}
