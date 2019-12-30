@@ -12,6 +12,7 @@ pub fn module_fuel_req(mass: i32) -> i32 {
 
 fn is_valid_password(mut pw: i32) -> bool {
     let mut dup_found = false;
+    let mut on_dup = false;
     let mut digits = 1;
     let mut prev = pw % 10;
     pw /= 10;
@@ -20,8 +21,15 @@ fn is_valid_password(mut pw: i32) -> bool {
         let cur = pw % 10;
         if prev == cur {
             dup_found = true;
-        } else if prev < cur {
-            return false;
+            if on_dup {
+                return false;
+            }
+            on_dup = true;
+        } else {
+            on_dup = false;
+            if prev < cur {
+                return false;
+            }
         }
         prev = cur;
         pw /= 10;

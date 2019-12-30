@@ -11,9 +11,7 @@ fn algo_module_fuel_req() {
 
 #[test]
 fn algo_test_password() {
-    assert!(is_valid_password(111111));
     assert!(is_valid_password(122345));
-    assert!(is_valid_password(566699));
 }
 
 #[test]
@@ -29,4 +27,9 @@ fn algo_test_password_not_increasing() {
 #[test]
 fn algo_test_password_no_double() {
     assert!(!is_valid_password(123456));
+}
+
+#[test]
+fn algo_test_password_excess_double() {
+    assert!(!is_valid_password(122234));
 }
