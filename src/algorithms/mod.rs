@@ -12,7 +12,7 @@ pub fn module_fuel_req(mass: i32) -> i32 {
 
 fn is_valid_password(mut pw: i32) -> bool {
     let mut dup_found = false;
-    let mut on_dup = false;
+    let mut dup_count = 0;
     let mut digits = 1;
     let mut prev = pw % 10;
     pw /= 10;
@@ -20,21 +20,20 @@ fn is_valid_password(mut pw: i32) -> bool {
         digits += 1;
         let cur = pw % 10;
         if prev == cur {
-            dup_found = true;
-            if on_dup {
-                return false;
-            }
-            on_dup = true;
+            dup_count += 1;
         } else {
-            on_dup = false;
             if prev < cur {
                 return false;
             }
+            if dup_count == 1 {
+                dup_found = true;
+            }
+            dup_count = 0;
         }
         prev = cur;
         pw /= 10;
     }
-    dup_found && digits == 6
+    (dup_found || dup_count == 1) && digits == 6
 }
 
 pub fn password_count(lower: i32, upper: i32) -> usize {

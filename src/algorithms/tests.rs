@@ -15,6 +15,16 @@ fn algo_test_password() {
 }
 
 #[test]
+fn algo_test_password_start_double() {
+    assert!(is_valid_password(112345));
+}
+
+#[test]
+fn algo_test_password_with_triple() {
+    assert!(is_valid_password(112233));
+}
+
+#[test]
 fn algo_test_password_wrong_digits() {
     assert!(!is_valid_password(122));
 }
