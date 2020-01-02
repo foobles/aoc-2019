@@ -1,10 +1,11 @@
 #![cfg(test)]
 
 use super::*;
+use std::io::{self, BufReader};
 
 fn test_machine_states(input: &[i32], output: &[i32]) {
     let mut machine = Machine::new(input.to_vec());
-    machine.run().unwrap();
+    machine.run(&mut BufReader::new(io::empty()), &mut io::sink()).unwrap();
     assert_eq!(machine.code.as_slice(), output);
 }
 

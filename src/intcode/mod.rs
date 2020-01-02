@@ -1,17 +1,21 @@
 mod tests;
 
 use std::mem;
+use std::io::prelude::*;
 
 pub struct Machine {
     code: Vec<i32>,
     cur: usize,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug)]
 pub enum Error {
     UnknownOpcode{ opcode: i32 },
     UnknownOpmode{ mode: i32},
-    OutOfBounds
+    OutOfBounds,
+    Eof,
+    InvalidInput,
+    IoError(std::io::Error)
 }
 
 macro_rules! access_args {
@@ -33,6 +37,8 @@ macro_rules! access_arg {
 
 const OP_ADD: i32 = 1;
 const OP_MUL: i32 = 2;
+const OP_IN:  i32 = 3;
+const OP_OUT: i32 = 4;
 const OP_END: i32 = 99;
 
 impl Machine {
@@ -40,12 +46,18 @@ impl Machine {
         Machine { code, cur: 0 }
     }
 
-    pub fn run(&mut self) -> Result<i32, Error> {
+    pub fn run<R, W>(&mut self, reader: &mut R, writer: &mut W) -> Result<i32, Error>
+    where
+        R: BufRead,
+        W: Write
+    {
         while self.cur < self.code.len() {
             //println!("CUR={:02} | {:?}", self.cur, self.code);
             match self.code[self.cur] % 100 {
                 OP_ADD => self.add()?,
                 OP_MUL => self.mul()?,
+                OP_IN => self.store_input(reader)?,
+                OP_OUT => self.output(writer)?,
                 OP_END => break,
                 n => return Err(Error::UnknownOpcode{ opcode: n })
             }
@@ -72,6 +84,28 @@ impl Machine {
         }
         self.set(r_addr, a * b)?;
         self.cur += 4;
+        Ok(())
+    }
+
+    fn store_input<R: BufRead>(&mut self, reader: &mut R) -> Result<(), Error> {
+        let mut input = String::new();
+        if reader.read_line( &mut input).map_err(Error::IoError)? == 0{
+            return Err(Error::Eof);
+        }
+        access_args!{self =>
+            (let r_addr = rawarg 0)
+        }
+        self.set(r_addr, input.trim().parse().or(Err(Error::InvalidInput))?)?;
+        self.cur += 2;
+        Ok(())
+    }
+
+    fn output<W: Write>(&mut self, writer: &mut W) -> Result<(), Error> {
+        access_args!{self =>
+            (let val = arg 0)
+        }
+        write!(writer, ": {}\n", val).map_err(Error::IoError)?;
+        self.cur += 2;
         Ok(())
     }
 
