@@ -39,6 +39,10 @@ const OP_ADD: i32 = 1;
 const OP_MUL: i32 = 2;
 const OP_IN:  i32 = 3;
 const OP_OUT: i32 = 4;
+const OP_JT:  i32 = 5;
+const OP_JF:  i32 = 6;
+const OP_LT:  i32 = 7;
+const OP_EQ:  i32 = 8;
 const OP_END: i32 = 99;
 
 impl Machine {
@@ -54,13 +58,17 @@ impl Machine {
         while self.cur < self.code.len() {
             //println!("CUR={:02} | {:?}", self.cur, self.code);
             match self.code[self.cur] % 100 {
-                OP_ADD => self.add()?,
-                OP_MUL => self.mul()?,
-                OP_IN => self.store_input(reader)?,
-                OP_OUT => self.output(writer)?,
+                OP_ADD => self.add(),
+                OP_MUL => self.mul(),
+                OP_IN => self.store_input(reader),
+                OP_OUT => self.output(writer),
+                OP_JT => self.jump_if(|x| x != 0),
+                OP_JF => self.jump_if(|x| x == 0),
+                OP_LT=> self.compare(|x, y| x < y),
+                OP_EQ => self.compare(|x, y| x == y),
                 OP_END => break,
                 n => return Err(Error::UnknownOpcode{ opcode: n })
-            }
+            }?;
         }
         Ok(self.code[0])
     }
@@ -117,6 +125,38 @@ impl Machine {
             .get_mut(idx as usize)
             .map(|x| mem::replace(x, val))
             .ok_or(Error::OutOfBounds)
+    }
+
+    fn jump_if<F: FnOnce(i32) -> bool>(&mut self, cond: F) -> Result<(), Error> {
+        access_args!{self =>
+            (let val = arg 0)
+            (let dest = arg 1)
+        }
+        if cond(val) {
+            self.cur = dest as usize;
+        } else {
+            self.cur += 3;
+        }
+        Ok(())
+    }
+
+    fn compare<F: FnOnce(i32, i32) -> bool>(&mut self, comp: F) -> Result<(), Error> {
+        access_args!{self =>
+            (let a = arg 0)
+            (let b = arg 1)
+            (let r_addr = rawarg 2)
+        }
+        self.set(r_addr, if comp(a, b) { 1 } else { 0 })?;
+        self.cur += 4;
+        Ok(())
+    }
+
+    fn jump(&mut self, loc: i32) -> Result<(), Error> {
+        if loc < 0 || loc as usize >= self.code.len() {
+            Err(Error::OutOfBounds)
+        } else {
+            Ok(())
+        }
     }
 
     fn get(&self, idx: i32) -> Result<i32, Error> {
