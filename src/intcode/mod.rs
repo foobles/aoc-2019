@@ -57,7 +57,7 @@ impl Machine {
     {
         while self.cur < self.code.len() {
             //println!("CUR={:02} | {:?}", self.cur, self.code);
-            match self.code[self.cur] % 100 {
+            self.cur = match self.code[self.cur] % 100 {
                 OP_ADD => self.bin_op(|x, y| x + y),
                 OP_MUL => self.bin_op(|x, y| x * y),
                 OP_IN => self.store_input(reader),
@@ -73,18 +73,17 @@ impl Machine {
         Ok(self.code[0])
     }
 
-    fn bin_op<F: FnOnce(i32, i32) -> i32>(&mut self, op: F) -> Result<(), Error> {
+    fn bin_op<F: FnOnce(i32, i32) -> i32>(&mut self, op: F) -> Result<usize, Error> {
         access_args!{self =>
             (let a = arg 0)
             (let b = arg 1)
             (let r_addr = rawarg 2)
         }
         self.set(r_addr, op(a, b))?;
-        self.cur += 4;
-        Ok(())
+        Ok(self.cur + 4)
     }
 
-    fn store_input<R: BufRead>(&mut self, reader: &mut R) -> Result<(), Error> {
+    fn store_input<R: BufRead>(&mut self, reader: &mut R) -> Result<usize, Error> {
         let mut input = String::new();
         if reader.read_line( &mut input).map_err(Error::IoError)? == 0{
             return Err(Error::Eof);
@@ -93,17 +92,15 @@ impl Machine {
             (let r_addr = rawarg 0)
         }
         self.set(r_addr, input.trim().parse().or(Err(Error::InvalidInput))?)?;
-        self.cur += 2;
-        Ok(())
+        Ok(self.cur + 2)
     }
 
-    fn output<W: Write>(&mut self, writer: &mut W) -> Result<(), Error> {
+    fn output<W: Write>(&mut self, writer: &mut W) -> Result<usize, Error> {
         access_args!{self =>
             (let val = arg 0)
         }
         write!(writer, ": {}\n", val).map_err(Error::IoError)?;
-        self.cur += 2;
-        Ok(())
+        Ok(self.cur + 2)
     }
 
     fn set(&mut self, idx: i32, val: i32) -> Result<i32, Error> {
@@ -116,29 +113,27 @@ impl Machine {
             .ok_or(Error::OutOfBounds)
     }
 
-    fn jump_if<F: FnOnce(i32) -> bool>(&mut self, cond: F) -> Result<(), Error> {
+    fn jump_if<F: FnOnce(i32) -> bool>(&mut self, cond: F) -> Result<usize, Error> {
         access_args!{self =>
             (let val = arg 0)
             (let dest = arg 1)
         }
         if cond(val) {
-            self.jump(dest)?;
+            self.jump(dest)
         } else {
-            self.cur += 3;
+            Ok(self.cur + 3)
         }
-        Ok(())
     }
 
-    fn compare<F: FnOnce(i32, i32) -> bool>(&mut self, comp: F) -> Result<(), Error> {
+    fn compare<F: FnOnce(i32, i32) -> bool>(&mut self, comp: F) -> Result<usize, Error> {
         self.bin_op(|x, y| if comp(x, y) { 1 } else { 0 })
     }
 
-    fn jump(&mut self, loc: i32) -> Result<(), Error> {
+    fn jump(&mut self, loc: i32) -> Result<usize, Error> {
         if loc < 0 || loc as usize >= self.code.len() {
             Err(Error::OutOfBounds)
         } else {
-            self.cur = loc as usize;
-            Ok(())
+            Ok(loc as usize)
         }
     }
 
