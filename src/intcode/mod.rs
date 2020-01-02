@@ -58,8 +58,8 @@ impl Machine {
         while self.cur < self.code.len() {
             //println!("CUR={:02} | {:?}", self.cur, self.code);
             match self.code[self.cur] % 100 {
-                OP_ADD => self.add(),
-                OP_MUL => self.mul(),
+                OP_ADD => self.arithmetic(|x, y| x + y),
+                OP_MUL => self.arithmetic(|x, y| x * y),
                 OP_IN => self.store_input(reader),
                 OP_OUT => self.output(writer),
                 OP_JT => self.jump_if(|x| x != 0),
@@ -73,24 +73,13 @@ impl Machine {
         Ok(self.code[0])
     }
 
-    fn add(&mut self) -> Result<(), Error> {
+    fn arithmetic<F: FnOnce(i32, i32) -> i32>(&mut self, op: F) -> Result<(), Error> {
         access_args!{self =>
             (let a = arg 0)
             (let b = arg 1)
             (let r_addr = rawarg 2)
         }
-        self.set(r_addr, a + b)?;
-        self.cur += 4;
-        Ok(())
-    }
-
-    fn mul(&mut self) -> Result<(), Error> {
-        access_args!{self =>
-            (let a = arg 0)
-            (let b = arg 1)
-            (let r_addr = rawarg 2)
-        }
-        self.set(r_addr, a * b)?;
+        self.set(r_addr, op(a, b))?;
         self.cur += 4;
         Ok(())
     }
