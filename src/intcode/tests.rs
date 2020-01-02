@@ -39,3 +39,19 @@ fn intcode_machine_modify_before() {
         &[30,1,1,4,2,5,6,0,99]
     );
 }
+
+#[test]
+fn intcode_machine_rhs_immediate_mul() {
+    test_machine_states(
+        &[1002,4,3,4,33],
+        &[1002, 4, 3, 4, 99]
+    );
+}
+
+#[test]
+fn intcode_machine_lhs_immediate_add() {
+    test_machine_states(
+        &[101, 50, 4, 4, 49],
+        &[101, 50, 4, 4, 99]
+    )
+}
