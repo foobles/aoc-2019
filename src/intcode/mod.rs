@@ -15,6 +15,7 @@ pub enum Error {
     OutOfBounds,
     Eof,
     InvalidInput,
+    NoTermination,
     IoError(std::io::Error)
 }
 
@@ -55,7 +56,7 @@ impl Machine {
         R: BufRead,
         W: Write
     {
-        while self.cur < self.code.len() {
+        loop {
             //println!("CUR={:02} | {:?}", self.cur, self.code);
             self.cur = match self.code[self.cur] % 100 {
                 OP_ADD => self.bin_op(|x, y| x + y),
@@ -66,11 +67,10 @@ impl Machine {
                 OP_JF => self.jump_if(|x| x == 0),
                 OP_LT=> self.compare(|x, y| x < y),
                 OP_EQ => self.compare(|x, y| x == y),
-                OP_END => break,
+                OP_END => return Ok(self.code[0]),
                 n => return Err(Error::UnknownOpcode{ opcode: n })
             }?;
         }
-        Ok(self.code[0])
     }
 
     fn bin_op<F: FnOnce(i32, i32) -> i32>(&mut self, op: F) -> Result<usize, Error> {
@@ -80,7 +80,7 @@ impl Machine {
             (let r_addr = rawarg 2)
         }
         self.set(r_addr, op(a, b))?;
-        Ok(self.cur + 4)
+        self.inc(4)
     }
 
     fn store_input<R: BufRead>(&mut self, reader: &mut R) -> Result<usize, Error> {
@@ -92,15 +92,15 @@ impl Machine {
             (let r_addr = rawarg 0)
         }
         self.set(r_addr, input.trim().parse().or(Err(Error::InvalidInput))?)?;
-        Ok(self.cur + 2)
+        self.inc(2)
     }
 
-    fn output<W: Write>(&mut self, writer: &mut W) -> Result<usize, Error> {
+    fn output<W: Write>(&self, writer: &mut W) -> Result<usize, Error> {
         access_args!{self =>
             (let val = arg 0)
         }
         write!(writer, ": {}\n", val).map_err(Error::IoError)?;
-        Ok(self.cur + 2)
+        self.inc(2)
     }
 
     fn set(&mut self, idx: i32, val: i32) -> Result<i32, Error> {
@@ -113,7 +113,7 @@ impl Machine {
             .ok_or(Error::OutOfBounds)
     }
 
-    fn jump_if<F: FnOnce(i32) -> bool>(&mut self, cond: F) -> Result<usize, Error> {
+    fn jump_if<F: FnOnce(i32) -> bool>(&self, cond: F) -> Result<usize, Error> {
         access_args!{self =>
             (let val = arg 0)
             (let dest = arg 1)
@@ -121,7 +121,7 @@ impl Machine {
         if cond(val) {
             self.jump(dest)
         } else {
-            Ok(self.cur + 3)
+            self.inc(3)
         }
     }
 
@@ -129,11 +129,19 @@ impl Machine {
         self.bin_op(|x, y| if comp(x, y) { 1 } else { 0 })
     }
 
-    fn jump(&mut self, loc: i32) -> Result<usize, Error> {
+    fn jump(&self, loc: i32) -> Result<usize, Error> {
         if loc < 0 || loc as usize >= self.code.len() {
             Err(Error::OutOfBounds)
         } else {
             Ok(loc as usize)
+        }
+    }
+
+    fn inc(&self, amount: usize) -> Result<usize, Error> {
+        if self.cur + amount >= self.code.len() {
+            Err(Error::NoTermination)
+        } else {
+            Ok(self.cur + amount)
         }
     }
 
