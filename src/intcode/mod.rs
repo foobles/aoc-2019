@@ -10,7 +10,7 @@ pub struct Machine {
 #[derive(Debug, Copy, Clone)]
 pub enum Error {
     UnknownOpcode{ opcode: i32 },
-    TooFewArguments,
+    UnknownOpmode{ mode: i32},
     OutOfBounds
 }
 
@@ -23,11 +23,11 @@ macro_rules! access_args {
 }
 
 macro_rules! access_arg {
-    ($machine:expr, let $binding:pat = *arg $idx:expr) => {
-        let $binding = $machine.get($machine.get_arg($idx)?)?;
-    };
     ($machine:expr, let $binding:pat = arg $idx:expr) => {
         let $binding = $machine.get_arg($idx)?;
+    };
+    ($machine:expr, let $binding:pat = rawarg $idx:expr) => {
+        let $binding = $machine.get_arg_raw($idx)?;
     }
 }
 
@@ -43,7 +43,7 @@ impl Machine {
     pub fn run(&mut self) -> Result<i32, Error> {
         while self.cur < self.code.len() {
             //println!("CUR={:02} | {:?}", self.cur, self.code);
-            match self.code[self.cur] {
+            match self.code[self.cur] % 100 {
                 OP_ADD => self.add()?,
                 OP_MUL => self.mul()?,
                 OP_END => break,
@@ -55,9 +55,9 @@ impl Machine {
 
     fn add(&mut self) -> Result<(), Error> {
         access_args!{self =>
-            (let a = *arg 0)
-            (let b = *arg 1)
-            (let r_addr = arg 2)
+            (let a = arg 0)
+            (let b = arg 1)
+            (let r_addr = rawarg 2)
         }
         self.set(r_addr, a + b)?;
         self.cur += 4;
@@ -66,9 +66,9 @@ impl Machine {
 
     fn mul(&mut self) -> Result<(), Error> {
         access_args!{self =>
-            (let a = *arg 0)
-            (let b = *arg 1)
-            (let r_addr = arg 2)
+            (let a = arg 0)
+            (let b = arg 1)
+            (let r_addr = rawarg 2)
         }
         self.set(r_addr, a * b)?;
         self.cur += 4;
@@ -92,8 +92,21 @@ impl Machine {
         self.code.get(idx as usize).copied().ok_or(Error::OutOfBounds)
     }
 
-    fn get_arg(&self, idx: usize) -> Result<i32, Error> {
+    fn get_arg_raw(&self, idx: usize) -> Result<i32, Error> {
         self.get((self.cur + idx + 1) as i32)
+    }
+
+    fn get_arg_mode(&self, idx: usize) -> Result<i32, Error> {
+        Ok(self.get_arg_raw(self.cur)? / 10_i32.pow(2 + idx as u32) % 10)
+    }
+
+    fn get_arg(&self, idx: usize) -> Result<i32, Error> {
+        let raw = self.get_arg_raw(idx)?;
+        match self.get_arg_mode(idx)? {
+            0 => self.get(raw),
+            1 => Ok(raw),
+            n => Err(Error::UnknownOpmode {mode: n})
+        }
     }
 }
 
