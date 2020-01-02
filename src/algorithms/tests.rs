@@ -43,3 +43,28 @@ fn algo_test_password_no_double() {
 fn algo_test_password_excess_double() {
     assert!(!is_valid_password(122234));
 }
+
+#[test]
+fn algo_test_count_orbits() {
+    assert_eq!(
+        42,
+        count_orbits(
+            &[
+                ("COM", "B"),
+                ("B", "C"),
+                ("C", "D"),
+                ("D", "E"),
+                ("E", "F"),
+                ("B", "G"),
+                ("G", "H"),
+                ("D", "I"),
+                ("E", "J"),
+                ("J", "K"),
+                ("K", "L")
+            ]
+            .iter()
+            .map(|(a, b)| (a.to_string(), b.to_string()))
+            .collect::<Vec<_>>()
+        )
+    );
+}

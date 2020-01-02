@@ -2,6 +2,7 @@ mod tests;
 pub mod wires;
 
 use std::iter;
+use std::collections::HashMap;
 
 pub fn module_fuel_req(mass: i32) -> i32 {
     iter::successors(Some(mass / 3 - 2), |&cur| {
@@ -38,4 +39,20 @@ fn is_valid_password(mut pw: i32) -> bool {
 
 pub fn password_count(lower: i32, upper: i32) -> usize {
     (lower..=upper).filter(|&x| is_valid_password(x)).count()
+}
+
+pub fn count_orbits(orbits: &[(String, String)]) -> usize {
+    let map: HashMap<String, &str> = orbits
+        .iter()
+        .map(|(x, y)| (y.clone(), x.as_str()))
+        .collect();
+    let mut count = 0;
+    for (_, cur) in orbits {
+        let mut cur = cur.as_str();
+        while let Some(next) = map.get(cur) {
+            cur = *next;
+            count += 1;
+        }
+    }
+    count
 }
