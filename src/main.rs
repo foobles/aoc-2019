@@ -1,6 +1,6 @@
-mod intcode;
+#![allow(dead_code)]
 
-#[allow(dead_code)]
+mod intcode;
 mod algorithms;
 
 use std::fs::File;
@@ -17,10 +17,19 @@ fn parse_intcode<B: BufRead>(file: B) -> io::Result<Machine> {
         .map(Machine::new)
 }
 
+fn parse_orbits<B: BufRead>(file: B) -> io::Result<Vec<(String, String)>> {
+    file.lines()
+        .map(|x| {
+            let mut x = x?;
+            let snd = String::from(&x[4..]);
+            x.truncate(3);
+            Ok((x, snd))
+        })
+        .collect()
+}
+
 fn main() -> io::Result<()> {
-    let mut machine = parse_intcode(BufReader::new(File::open("data/ac_prog.txt")?))?;
-    let mut input = BufReader::new(io::stdin());
-    let mut output = io::stdout();
-    println!("{}", machine.run(&mut input, &mut output).unwrap());
+    let orbits = parse_orbits(BufReader::new(File::open("data/orbits.txt")?))?;
+
     Ok(())
 }
