@@ -96,13 +96,13 @@ impl Machine {
         self.get((self.cur + idx + 1) as i32)
     }
 
-    fn get_arg_mode(&self, idx: usize) -> Result<i32, Error> {
-        Ok(self.code[self.cur] / 10_i32.pow(2 + idx as u32) % 10)
+    fn get_arg_mode(&self, idx: usize) -> i32 {
+        self.code[self.cur] / 10_i32.pow(2 + idx as u32) % 10
     }
 
     fn get_arg(&self, idx: usize) -> Result<i32, Error> {
         let raw = self.get_arg_raw(idx);
-        match self.get_arg_mode(idx)? {
+        match self.get_arg_mode(idx) {
             0 => self.get(raw?),
             1 => raw,
             n => Err(Error::UnknownOpmode {mode: n})
