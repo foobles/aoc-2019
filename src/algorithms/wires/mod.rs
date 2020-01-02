@@ -57,7 +57,7 @@ impl Wire {
         let (mut cx, mut cy) = (0, 0);
         for &v in &self.path {
             let (dx, dy) = v.dir.into_coords();
-            for i in 0..v.magnitude {
+            for _ in 0..v.magnitude {
                 cx += dx;
                 cy += dy;
                 op((cx, cy));
@@ -68,7 +68,6 @@ impl Wire {
 
 pub fn closest_wire_intersection(wire_a: &Wire, wire_b: &Wire) -> Option<i32> {
     let mut points = HashMap::new();
-    let (mut cx, mut cy) = (0, 0);
     let mut cur_travelled = 0;
     wire_a.for_each_point(|p| {
         cur_travelled += 1;

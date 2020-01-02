@@ -122,7 +122,7 @@ impl Machine {
             (let dest = arg 1)
         }
         if cond(val) {
-            self.cur = dest as usize;
+            self.jump(dest)?;
         } else {
             self.cur += 3;
         }
@@ -144,6 +144,7 @@ impl Machine {
         if loc < 0 || loc as usize >= self.code.len() {
             Err(Error::OutOfBounds)
         } else {
+            self.cur = loc as usize;
             Ok(())
         }
     }
