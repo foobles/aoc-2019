@@ -101,10 +101,10 @@ impl Machine {
     }
 
     fn get_arg(&self, idx: usize) -> Result<i32, Error> {
-        let raw = self.get_arg_raw(idx)?;
+        let raw = self.get_arg_raw(idx);
         match self.get_arg_mode(idx)? {
-            0 => self.get(raw),
-            1 => Ok(raw),
+            0 => self.get(raw?),
+            1 => raw,
             n => Err(Error::UnknownOpmode {mode: n})
         }
     }
