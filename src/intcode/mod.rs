@@ -97,7 +97,7 @@ impl Machine {
     }
 
     fn get_arg_mode(&self, idx: usize) -> Result<i32, Error> {
-        Ok(self.get_arg_raw(self.cur)? / 10_i32.pow(2 + idx as u32) % 10)
+        Ok(self.code[self.cur] / 10_i32.pow(2 + idx as u32) % 10)
     }
 
     fn get_arg(&self, idx: usize) -> Result<i32, Error> {
