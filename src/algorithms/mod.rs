@@ -56,19 +56,25 @@ where
         }
         ret
     })
+}
 
+fn orbit_pairs_to_map(orbits: &[(String, String)]) -> HashMap<String, &str> {
+    orbits
+        .iter()
+        .map(|(x, y)| (y.clone(), x.as_str()))
+        .collect()
 }
 
 pub fn count_orbits(orbits: &[(String, String)]) -> usize {
-    let map: HashMap<String, &str> = orbits
-        .iter()
-        .map(|(x, y)| (y.clone(), x.as_str()))
-        .collect();
-    let mut count = 0;
-    for (_, cur) in orbits {
-        count += path_to_root(&map, &cur.as_str()).count();
-    }
-    count
+    let map = orbit_pairs_to_map(orbits);
+    orbits.iter()
+        .map(|(_, x)| path_to_root(&map, x).count())
+        .sum()
+}
+
+pub fn orbit_distance(orbits: &[(String, String)], x: &str, y: &str) -> usize {
+    let map = orbit_pairs_to_map(orbits);
+    tree_distance(&map, &map[x], &map[y])
 }
 
 pub fn tree_distance(tree: &HashMap<String, &str>, x: &str, y: &str) -> usize {

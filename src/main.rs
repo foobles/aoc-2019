@@ -30,7 +30,7 @@ fn parse_orbits<B: BufRead>(file: B) -> io::Result<Vec<(String, String)>> {
 
 fn main() -> io::Result<()> {
     let orbits = parse_orbits(BufReader::new(File::open("data/orbits.txt")?))?;
-    let count = algorithms::count_orbits(&orbits);
-    println!("{}", count);
+    let dist = algorithms::orbit_distance(&orbits, "YOU", "SAN");
+    println!("{}", dist);
     Ok(())
 }
