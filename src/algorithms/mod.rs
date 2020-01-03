@@ -3,6 +3,8 @@ pub mod wires;
 
 use std::iter;
 use std::collections::HashMap;
+use std::borrow::Borrow;
+use std::hash::Hash;
 
 pub fn module_fuel_req(mass: i32) -> i32 {
     iter::successors(Some(mass / 3 - 2), |&cur| {
@@ -41,6 +43,22 @@ pub fn password_count(lower: i32, upper: i32) -> usize {
     (lower..=upper).filter(|&x| is_valid_password(x)).count()
 }
 
+pub fn path_to_root<'a, K, V>(tree: &'a HashMap<K, &V>, val: &V) -> impl Iterator<Item = &'a V>
+where
+    K: Hash + Eq + Borrow<V>,
+    V: Hash + Eq + ?Sized,
+{
+    let mut cur = tree.get(val).copied();
+    iter::from_fn(move || {
+        let ret = cur.take();
+        if let Some(x) = ret {
+            cur = tree.get(x).copied();
+        }
+        ret
+    })
+
+}
+
 pub fn count_orbits(orbits: &[(String, String)]) -> usize {
     let map: HashMap<String, &str> = orbits
         .iter()
@@ -48,11 +66,21 @@ pub fn count_orbits(orbits: &[(String, String)]) -> usize {
         .collect();
     let mut count = 0;
     for (_, cur) in orbits {
-        let mut cur = cur.as_str();
-        while let Some(next) = map.get(cur) {
-            cur = *next;
-            count += 1;
-        }
+        count += path_to_root(&map, &cur.as_str()).count();
     }
     count
+}
+
+pub fn tree_distance(tree: &HashMap<String, &str>, x: &str, y: &str) -> usize {
+    let x_path: Vec<_> = path_to_root(tree, x).collect();
+    let y_path: Vec<_> = path_to_root(tree, y).collect();
+    let x_dist = x_path.len();
+    let y_dist = y_path.len();
+    let cca_dist= x_path
+        .into_iter()
+        .rev()
+        .zip(y_path.into_iter().rev())
+        .take_while(|&(a, b)| a == b)
+        .count() - 1;
+    x_dist + y_dist - 2 * cca_dist
 }

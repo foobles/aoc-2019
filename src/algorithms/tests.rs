@@ -68,3 +68,24 @@ fn algo_test_count_orbits() {
         )
     );
 }
+
+#[test]
+fn algo_test_tree_distance() {
+    let map = [
+        ("COM", "B"),
+        ("B", "C"),
+        ("C", "D"),
+        ("D", "E"),
+        ("E", "F"),
+        ("B", "G"),
+        ("G", "H"),
+        ("D", "I"),
+        ("E", "J"),
+        ("J", "K"),
+        ("K", "L")
+    ]
+        .iter()
+        .map(|&(a, b)| (b.to_string(), a))
+        .collect::<HashMap<_, _>>();
+    assert_eq!(4, tree_distance(&map, "K", "I"));
+}
