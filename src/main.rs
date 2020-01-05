@@ -29,8 +29,15 @@ fn parse_orbits<B: BufRead>(file: B) -> io::Result<Vec<(String, String)>> {
 }
 
 fn main() -> io::Result<()> {
-    let orbits = parse_orbits(BufReader::new(File::open("data/orbits.txt")?))?;
-    let dist = algorithms::orbit_distance(&orbits, "YOU", "SAN");
-    println!("{}", dist);
+//    let orbits = parse_orbits(BufReader::new(File::open("data/orbits.txt")?))?;
+//    let dist = algorithms::orbit_distance(&orbits, "YOU", "SAN");
+//    println!("{}", dist);
+//    Ok(())
+
+    let mut machine = parse_intcode(BufReader::new(File::open("data/ac_prog.txt")?))?;
+    let r = machine.run(&mut std::iter::once(1)).expect("terminated strangely");
+    for i in r {
+        println!(": {}", i);
+    }
     Ok(())
 }

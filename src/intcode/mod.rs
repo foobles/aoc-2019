@@ -2,6 +2,7 @@ mod tests;
 
 use std::mem;
 use std::io::prelude::*;
+use std::collections::VecDeque;
 
 pub struct Machine {
     code: Vec<i32>,
@@ -14,7 +15,6 @@ pub enum Error {
     UnknownOpmode{ mode: i32},
     OutOfBounds,
     Eof,
-    InvalidInput,
     NoTermination,
     IoError(std::io::Error)
 }
@@ -51,23 +51,23 @@ impl Machine {
         Machine { code, cur: 0 }
     }
 
-    pub fn run<R, W>(&mut self, reader: &mut R, writer: &mut W) -> Result<i32, Error>
+    pub fn run<I>(&mut self, reader: &mut I) -> Result<Vec<i32>, Error>
     where
-        R: BufRead,
-        W: Write
+        I: Iterator<Item = i32>
     {
+        let mut ret = Vec::new();
         loop {
             //println!("CUR={:02} | {:?}", self.cur, self.code);
             self.cur = match self.code[self.cur] % 100 {
                 OP_ADD => self.bin_op(|x, y| x + y),
                 OP_MUL => self.bin_op(|x, y| x * y),
                 OP_IN => self.store_input(reader),
-                OP_OUT => self.output(writer),
+                OP_OUT => self.output(&mut ret),
                 OP_JT => self.jump_if(|x| x != 0),
                 OP_JF => self.jump_if(|x| x == 0),
                 OP_LT=> self.compare(|x, y| x < y),
                 OP_EQ => self.compare(|x, y| x == y),
-                OP_END => return Ok(self.code[0]),
+                OP_END => return Ok(ret),
                 n => return Err(Error::UnknownOpcode{ opcode: n })
             }?;
         }
@@ -83,23 +83,22 @@ impl Machine {
         self.inc(4)
     }
 
-    fn store_input<R: BufRead>(&mut self, reader: &mut R) -> Result<usize, Error> {
-        let mut input = String::new();
-        if reader.read_line( &mut input).map_err(Error::IoError)? == 0{
-            return Err(Error::Eof);
-        }
+    fn store_input<I>(&mut self, input: &mut I) -> Result<usize, Error>
+    where
+        I: Iterator<Item = i32>
+    {
         access_args!{self =>
             (let r_addr = rawarg 0)
         }
-        self.set(r_addr, input.trim().parse().or(Err(Error::InvalidInput))?)?;
+        self.set(r_addr, input.next().ok_or(Error::Eof)?)?;
         self.inc(2)
     }
 
-    fn output<W: Write>(&self, writer: &mut W) -> Result<usize, Error> {
+    fn output(&self, out: &mut Vec<i32>) -> Result<usize, Error> {
         access_args!{self =>
             (let val = arg 0)
         }
-        write!(writer, ": {}\n", val).map_err(Error::IoError)?;
+        out.push(val);
         self.inc(2)
     }
 
