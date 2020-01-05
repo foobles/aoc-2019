@@ -51,17 +51,18 @@ impl Machine {
         Machine { code, cur: 0 }
     }
 
-    pub fn run<I>(&mut self, reader: &mut I) -> Result<Vec<i32>, Error>
+    pub fn run<I>(&mut self, input: I) -> Result<Vec<i32>, Error>
     where
-        I: Iterator<Item = i32>
+        I: IntoIterator<Item = i32>
     {
         let mut ret = Vec::new();
+        let mut input_iter = input.into_iter();
         loop {
             //println!("CUR={:02} | {:?}", self.cur, self.code);
             self.cur = match self.code[self.cur] % 100 {
                 OP_ADD => self.bin_op(|x, y| x + y),
                 OP_MUL => self.bin_op(|x, y| x * y),
-                OP_IN => self.store_input(reader),
+                OP_IN => self.store_input(&mut input_iter),
                 OP_OUT => self.output(&mut ret),
                 OP_JT => self.jump_if(|x| x != 0),
                 OP_JF => self.jump_if(|x| x == 0),
