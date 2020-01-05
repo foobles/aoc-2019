@@ -35,7 +35,7 @@ fn main() -> io::Result<()> {
 //    Ok(())
 
     let mut machine = parse_intcode(BufReader::new(File::open("data/ac_prog.txt")?))?;
-    let r = machine.run(vec![1]).expect("terminated strangely");
+    let r = machine.run(io::stdin().lock().lines().map(|x| x.unwrap().trim().parse().unwrap())).expect("terminated strangely");
     for i in r {
         println!(": {}", i);
     }

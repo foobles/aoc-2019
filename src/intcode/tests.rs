@@ -5,7 +5,7 @@ use std::io::{self, BufReader};
 
 fn test_machine_states(input: &[i32], output: &[i32]) {
     let mut machine = Machine::new(input.to_vec());
-    machine.run(&mut BufReader::new(io::empty()), &mut io::sink()).unwrap();
+    machine.run(std::iter::empty()).unwrap();
     assert_eq!(machine.code.as_slice(), output);
 }
 
