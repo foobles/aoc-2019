@@ -1,8 +1,6 @@
 mod tests;
 
 use std::mem;
-use std::io::prelude::*;
-use std::collections::VecDeque;
 
 pub struct Machine {
     code: Vec<i32>,
