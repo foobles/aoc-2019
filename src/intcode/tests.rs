@@ -123,6 +123,7 @@ fn intcode_machine_eq_equal() {
     );
 }
 
+#[test]
 fn intcode_machine_eq_not_equal() {
     test_machine_states(
         &[1108, 5, 6, 2, 99],
