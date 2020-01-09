@@ -1,3 +1,5 @@
+mod tests;
+
 use crate::intcode::{Error, Machine};
 
 pub fn score_setting<I>(machine: &Machine, setting: I) -> Result<Option<i32>, Error>
