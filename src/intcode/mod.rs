@@ -2,6 +2,7 @@ mod tests;
 
 use std::mem;
 
+#[derive(Debug, Clone)]
 pub struct Machine {
     code: Vec<i32>,
     cur: usize,
@@ -55,6 +56,7 @@ impl Machine {
     {
         let mut ret = Vec::new();
         let mut input_iter = input.into_iter();
+        self.cur = 0;
         loop {
             //println!("CUR={:02} | {:?}", self.cur, self.code);
             self.cur = match self.code[self.cur] % 100 {

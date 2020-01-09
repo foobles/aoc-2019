@@ -1,5 +1,6 @@
 mod tests;
 pub mod wires;
+pub mod amplifier;
 
 use std::iter;
 use std::collections::HashMap;
