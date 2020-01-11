@@ -1,11 +1,8 @@
-mod tests;
 pub mod wires;
 pub mod amplifier;
+pub mod orbits;
 
 use std::iter;
-use std::collections::HashMap;
-use std::borrow::Borrow;
-use std::hash::Hash;
 
 pub fn module_fuel_req(mass: i32) -> i32 {
     iter::successors(Some(mass / 3 - 2), |&cur| {
@@ -44,50 +41,49 @@ pub fn password_count(lower: i32, upper: i32) -> usize {
     (lower..=upper).filter(|&x| is_valid_password(x)).count()
 }
 
-pub fn path_to_root<'a, K, V>(tree: &'a HashMap<K, &V>, val: &V) -> impl Iterator<Item = &'a V>
-where
-    K: Hash + Eq + Borrow<V>,
-    V: Hash + Eq + ?Sized,
-{
-    let mut cur = tree.get(val).copied();
-    iter::from_fn(move || {
-        let ret = cur.take();
-        if let Some(x) = ret {
-            cur = tree.get(x).copied();
-        }
-        ret
-    })
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-fn orbit_pairs_to_map(orbits: &[(String, String)]) -> HashMap<String, &str> {
-    orbits
-        .iter()
-        .map(|(x, y)| (y.clone(), x.as_str()))
-        .collect()
-}
+    #[test]
+    fn algo_module_fuel_req() {
+        assert_eq!(module_fuel_req(14), 2);
+        assert_eq!(module_fuel_req(1969), 966);
+        assert_eq!(module_fuel_req(100756), 50346);
+    }
 
-pub fn count_orbits(orbits: &[(String, String)]) -> usize {
-    let map = orbit_pairs_to_map(orbits);
-    orbits.iter()
-        .map(|(_, x)| path_to_root(&map, x).count())
-        .sum()
-}
+    #[test]
+    fn algo_test_password() {
+        assert!(is_valid_password(122345));
+    }
 
-pub fn orbit_distance(orbits: &[(String, String)], x: &str, y: &str) -> usize {
-    let map = orbit_pairs_to_map(orbits);
-    tree_distance(&map, &map[x], &map[y])
-}
+    #[test]
+    fn algo_test_password_start_double() {
+        assert!(is_valid_password(112345));
+    }
 
-pub fn tree_distance(tree: &HashMap<String, &str>, x: &str, y: &str) -> usize {
-    let x_path: Vec<_> = path_to_root(tree, x).collect();
-    let y_path: Vec<_> = path_to_root(tree, y).collect();
-    let x_dist = x_path.len();
-    let y_dist = y_path.len();
-    let cca_dist= x_path
-        .into_iter()
-        .rev()
-        .zip(y_path.into_iter().rev())
-        .take_while(|&(a, b)| a == b)
-        .count() - 1;
-    x_dist + y_dist - 2 * cca_dist
+    #[test]
+    fn algo_test_password_with_triple() {
+        assert!(is_valid_password(112233));
+    }
+
+    #[test]
+    fn algo_test_password_wrong_digits() {
+        assert!(!is_valid_password(122));
+    }
+
+    #[test]
+    fn algo_test_password_not_increasing() {
+        assert!(!is_valid_password(122340));
+    }
+
+    #[test]
+    fn algo_test_password_no_double() {
+        assert!(!is_valid_password(123456));
+    }
+
+    #[test]
+    fn algo_test_password_excess_double() {
+        assert!(!is_valid_password(122234));
+    }
 }
