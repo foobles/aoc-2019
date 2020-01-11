@@ -10,12 +10,12 @@ pub struct Machine {
 
 #[derive(Debug)]
 pub enum Error {
-    UnknownOpcode{ opcode: i32 },
-    UnknownOpmode{ mode: i32},
+    UnknownOpcode { opcode: i32 },
+    UnknownOpmode { mode: i32 },
     OutOfBounds,
     Eof,
     NoTermination,
-    IoError(std::io::Error)
+    IoError(std::io::Error),
 }
 
 macro_rules! access_args {
@@ -32,17 +32,17 @@ macro_rules! access_arg {
     };
     ($machine:expr, let $binding:pat = rawarg $idx:expr) => {
         let $binding = $machine.get_arg_raw($idx)?;
-    }
+    };
 }
 
 const OP_ADD: i32 = 1;
 const OP_MUL: i32 = 2;
-const OP_IN:  i32 = 3;
+const OP_IN: i32 = 3;
 const OP_OUT: i32 = 4;
-const OP_JT:  i32 = 5;
-const OP_JF:  i32 = 6;
-const OP_LT:  i32 = 7;
-const OP_EQ:  i32 = 8;
+const OP_JT: i32 = 5;
+const OP_JF: i32 = 6;
+const OP_LT: i32 = 7;
+const OP_EQ: i32 = 8;
 const OP_END: i32 = 99;
 
 impl Machine {
@@ -52,7 +52,7 @@ impl Machine {
 
     pub fn run<I>(&mut self, input: I) -> Result<Vec<i32>, Error>
     where
-        I: IntoIterator<Item = i32>
+        I: IntoIterator<Item = i32>,
     {
         let mut ret = Vec::new();
         let mut input_iter = input.into_iter();
@@ -66,16 +66,16 @@ impl Machine {
                 OP_OUT => self.output(&mut ret),
                 OP_JT => self.jump_if(|x| x != 0),
                 OP_JF => self.jump_if(|x| x == 0),
-                OP_LT=> self.compare(|x, y| x < y),
+                OP_LT => self.compare(|x, y| x < y),
                 OP_EQ => self.compare(|x, y| x == y),
                 OP_END => return Ok(ret),
-                n => return Err(Error::UnknownOpcode{ opcode: n })
+                n => return Err(Error::UnknownOpcode { opcode: n }),
             }?;
         }
     }
 
     fn bin_op<F: FnOnce(i32, i32) -> i32>(&mut self, op: F) -> Result<usize, Error> {
-        access_args!{self =>
+        access_args! {self =>
             (let a = arg 0)
             (let b = arg 1)
             (let r_addr = rawarg 2)
@@ -86,9 +86,9 @@ impl Machine {
 
     fn store_input<I>(&mut self, input: &mut I) -> Result<usize, Error>
     where
-        I: Iterator<Item = i32>
+        I: Iterator<Item = i32>,
     {
-        access_args!{self =>
+        access_args! {self =>
             (let r_addr = rawarg 0)
         }
         self.set(r_addr, input.next().ok_or(Error::Eof)?)?;
@@ -96,7 +96,7 @@ impl Machine {
     }
 
     fn output(&self, out: &mut Vec<i32>) -> Result<usize, Error> {
-        access_args!{self =>
+        access_args! {self =>
             (let val = arg 0)
         }
         out.push(val);
@@ -114,7 +114,7 @@ impl Machine {
     }
 
     fn jump_if<F: FnOnce(i32) -> bool>(&self, cond: F) -> Result<usize, Error> {
-        access_args!{self =>
+        access_args! {self =>
             (let val = arg 0)
             (let dest = arg 1)
         }
@@ -149,7 +149,10 @@ impl Machine {
         if idx < 0 {
             return Err(Error::OutOfBounds);
         }
-        self.code.get(idx as usize).copied().ok_or(Error::OutOfBounds)
+        self.code
+            .get(idx as usize)
+            .copied()
+            .ok_or(Error::OutOfBounds)
     }
 
     fn get_arg_raw(&self, idx: usize) -> Result<i32, Error> {
@@ -165,8 +168,7 @@ impl Machine {
         match self.get_arg_mode(idx) {
             0 => self.get(raw?),
             1 => raw,
-            n => Err(Error::UnknownOpmode {mode: n})
+            n => Err(Error::UnknownOpmode { mode: n }),
         }
     }
 }
-

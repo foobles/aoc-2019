@@ -1,5 +1,5 @@
-use std::str::FromStr;
 use std::collections::HashMap;
+use std::str::FromStr;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 enum Dir {
@@ -15,7 +15,7 @@ impl Dir {
             Dir::Up => (0, -1),
             Dir::Down => (0, 1),
             Dir::Left => (-1, 0),
-            Dir::Right => (1, 0)
+            Dir::Right => (1, 0),
         }
     }
 }
@@ -23,7 +23,7 @@ impl Dir {
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct AaVec {
     dir: Dir,
-    magnitude: i32
+    magnitude: i32,
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -34,15 +34,15 @@ impl FromStr for AaVec {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let first = s.chars().next().ok_or(ParseAaVecError)?;
-        let dir = match  first {
+        let dir = match first {
             'U' => Dir::Up,
             'D' => Dir::Down,
             'L' => Dir::Left,
             'R' => Dir::Right,
-            _ => return Err(ParseAaVecError)
+            _ => return Err(ParseAaVecError),
         };
         let magnitude = s[1..].parse().or(Err(ParseAaVecError))?;
-        Ok(AaVec{ dir, magnitude })
+        Ok(AaVec { dir, magnitude })
     }
 }
 
@@ -95,11 +95,10 @@ impl FromStr for Wire {
         s.split(',')
             .map(|x| x.parse())
             .collect::<Result<_, _>>()
-            .map(|path| Wire{ path })
+            .map(|path| Wire { path })
             .or(Err(ParseWireError))
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -107,7 +106,13 @@ mod tests {
 
     #[test]
     fn algo_parse_aa_vec() {
-        assert_eq!("U432".parse::<AaVec>().unwrap(), AaVec{ dir: Dir::Up, magnitude: 432});
+        assert_eq!(
+            "U432".parse::<AaVec>().unwrap(),
+            AaVec {
+                dir: Dir::Up,
+                magnitude: 432
+            }
+        );
     }
 
     #[test]
@@ -136,10 +141,7 @@ mod tests {
     fn test_intersection(dist: Option<i32>, w1: &str, w2: &str) {
         assert_eq!(
             dist,
-            closest_wire_intersection(
-                &w1.parse().unwrap(),
-                &w2.parse().unwrap()
-            )
+            closest_wire_intersection(&w1.parse().unwrap(), &w2.parse().unwrap())
         );
     }
 
@@ -148,16 +150,12 @@ mod tests {
         test_intersection(
             Some(610),
             "R75,D30,R83,U83,L12,D49,R71,U7,L72",
-            "U62,R66,U55,R34,D71,R55,D58,R83"
+            "U62,R66,U55,R34,D71,R55,D58,R83",
         );
     }
 
     #[test]
     fn wires_not_intersect() {
-        test_intersection(
-            None,
-            "R75,D30",
-            "U62,R66"
-        );
+        test_intersection(None, "R75,D30", "U62,R66");
     }
 }

@@ -1,6 +1,6 @@
-pub mod wires;
 pub mod amplifier;
 pub mod orbits;
+pub mod wires;
 
 use std::iter;
 
@@ -54,7 +54,6 @@ pub fn iter_digits(mut n: u32, digits: u32) -> impl Iterator<Item = u32> {
     }
     ret.into_iter().rev()
 }
-
 
 #[cfg(test)]
 mod tests {

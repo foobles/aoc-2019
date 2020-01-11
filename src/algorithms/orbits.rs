@@ -1,12 +1,12 @@
 use std::borrow::Borrow;
 use std::collections::HashMap;
-use std::iter;
 use std::hash::Hash;
+use std::iter;
 
 pub fn path_to_root<'a, K, V>(tree: &'a HashMap<K, &V>, val: &V) -> impl Iterator<Item = &'a V>
-    where
-        K: Hash + Eq + Borrow<V>,
-        V: Hash + Eq + ?Sized,
+where
+    K: Hash + Eq + Borrow<V>,
+    V: Hash + Eq + ?Sized,
 {
     let mut cur = tree.get(val).copied();
     iter::from_fn(move || {
@@ -27,7 +27,8 @@ fn orbit_pairs_to_map(orbits: &[(String, String)]) -> HashMap<String, &str> {
 
 pub fn count_orbits(orbits: &[(String, String)]) -> usize {
     let map = orbit_pairs_to_map(orbits);
-    orbits.iter()
+    orbits
+        .iter()
         .map(|(_, x)| path_to_root(&map, x).count())
         .sum()
 }
@@ -42,12 +43,13 @@ pub fn tree_distance(tree: &HashMap<String, &str>, x: &str, y: &str) -> usize {
     let y_path: Vec<_> = path_to_root(tree, y).collect();
     let x_dist = x_path.len();
     let y_dist = y_path.len();
-    let cca_dist= x_path
+    let cca_dist = x_path
         .into_iter()
         .rev()
         .zip(y_path.into_iter().rev())
         .take_while(|&(a, b)| a == b)
-        .count() - 1;
+        .count()
+        - 1;
     x_dist + y_dist - 2 * cca_dist
 }
 
@@ -73,9 +75,9 @@ mod tests {
                     ("J", "K"),
                     ("K", "L")
                 ]
-                    .iter()
-                    .map(|(a, b)| (a.to_string(), b.to_string()))
-                    .collect::<Vec<_>>()
+                .iter()
+                .map(|(a, b)| (a.to_string(), b.to_string()))
+                .collect::<Vec<_>>()
             )
         );
     }
@@ -93,11 +95,11 @@ mod tests {
             ("D", "I"),
             ("E", "J"),
             ("J", "K"),
-            ("K", "L")
+            ("K", "L"),
         ]
-            .iter()
-            .map(|&(a, b)| (b.to_string(), a))
-            .collect::<HashMap<_, _>>();
+        .iter()
+        .map(|&(a, b)| (b.to_string(), a))
+        .collect::<HashMap<_, _>>();
         assert_eq!(4, tree_distance(&map, "K", "I"));
     }
 }
