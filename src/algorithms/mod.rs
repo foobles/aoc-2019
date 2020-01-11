@@ -41,6 +41,21 @@ pub fn password_count(lower: i32, upper: i32) -> usize {
     (lower..=upper).filter(|&x| is_valid_password(x)).count()
 }
 
+pub fn iter_digits(mut n: u32, digits: u32) -> impl Iterator<Item = u32> {
+    let mut ret = Vec::new();
+    for _ in 0..digits {
+        ret.push(if n != 0 {
+            let d = n % 10;
+            n /= 10;
+            d
+        } else {
+            0
+        });
+    }
+    ret.into_iter().rev()
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -85,5 +100,21 @@ mod tests {
     #[test]
     fn algo_test_password_excess_double() {
         assert!(!is_valid_password(122234));
+    }
+
+    #[test]
+    fn algo_test_iter_digits() {
+        assert_eq!(
+            &[1, 2, 5],
+            iter_digits(125, 3).collect::<Vec<_>>().as_slice()
+        );
+    }
+
+    #[test]
+    fn algo_test_iter_digits_leading_zero() {
+        assert_eq!(
+            &[0, 0, 4, 3, 2],
+            iter_digits(432, 5).collect::<Vec<_>>().as_slice()
+        );
     }
 }
