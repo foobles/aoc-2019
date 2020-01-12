@@ -34,9 +34,9 @@ fn main() -> io::Result<()> {
 
     let machine = parse_intcode(BufReader::new(File::open("data/amp_prog.txt")?))?;
 
-    let max = algorithms::permutations(vec![0, 1, 2, 3, 4])
+    let max = algorithms::permutations(vec![5, 6, 7, 8, 9])
         .map(|v| {
-            let r = algorithms::amplifier::score_setting(&machine, v)
+            let r = algorithms::amplifier::score_setting_feedback(&machine, &v)
                 .unwrap()
                 .unwrap();
             r
