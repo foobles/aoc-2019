@@ -72,7 +72,7 @@ impl Machine {
         let output_init_len = output.len();
         match self.run_inner_loop(input.into_iter(), output) {
             Ok(_) | Err(Error::Eof) => Ok(output.len() - output_init_len),
-            Err(e) => Err(e)
+            Err(e) => Err(e),
         }
     }
 
