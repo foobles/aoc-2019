@@ -6,6 +6,7 @@ use std::mem;
 pub struct Machine {
     code: Vec<i32>,
     cur: usize,
+    done: bool,
 }
 
 #[derive(Debug)]
@@ -47,31 +48,61 @@ const OP_END: i32 = 99;
 
 impl Machine {
     pub fn new(code: Vec<i32>) -> Self {
-        Machine { code, cur: 0 }
+        Machine {
+            code,
+            cur: 0,
+            done: false,
+        }
     }
 
-    pub fn run<I>(&mut self, input: I, output: &mut Vec<i32>) -> Result<usize, Error>
+    pub fn run_to_end<I>(&mut self, input: I) -> Result<Vec<i32>, Error>
+    where
+        I: IntoIterator<Item = i32>,
+    {
+        let mut output = Vec::new();
+        self.cur = 0;
+        self.run_inner_loop(input.into_iter(), &mut output)?;
+        Ok(output)
+    }
+
+    pub fn run_with<I>(&mut self, input: I, output: &mut Vec<i32>) -> Result<usize, Error>
     where
         I: IntoIterator<Item = i32>,
     {
         let output_init_len = output.len();
-        let mut input_iter = input.into_iter();
-        self.cur = 0;
-        loop {
-            //println!("CUR={:02} | {:?}", self.cur, self.code);
+        match self.run_inner_loop(input.into_iter(), output) {
+            Ok(_) | Err(Error::Eof) => Ok(output.len() - output_init_len),
+            Err(e) => Err(e)
+        }
+    }
+
+    pub fn done(&self) -> bool {
+        self.done
+    }
+
+    fn run_inner_loop(
+        &mut self,
+        mut input: impl Iterator<Item = i32>,
+        output: &mut Vec<i32>,
+    ) -> Result<(), Error> {
+        while !self.done {
             self.cur = match self.code[self.cur] % 100 {
                 OP_ADD => self.bin_op(|x, y| x + y),
                 OP_MUL => self.bin_op(|x, y| x * y),
-                OP_IN => self.store_input(&mut input_iter),
+                OP_IN => self.store_input(&mut input),
                 OP_OUT => self.output(output),
                 OP_JT => self.jump_if(|x| x != 0),
                 OP_JF => self.jump_if(|x| x == 0),
                 OP_LT => self.compare(|x, y| x < y),
                 OP_EQ => self.compare(|x, y| x == y),
-                OP_END => return Ok(output.len() - output_init_len),
-                n => return Err(Error::UnknownOpcode { opcode: n }),
+                OP_END => {
+                    self.done = true;
+                    Ok(self.cur)
+                }
+                n => Err(Error::UnknownOpcode { opcode: n }),
             }?;
         }
+        Ok(())
     }
 
     fn bin_op<F: FnOnce(i32, i32) -> i32>(&mut self, op: F) -> Result<usize, Error> {

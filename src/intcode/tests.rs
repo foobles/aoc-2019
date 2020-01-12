@@ -1,20 +1,23 @@
 #![cfg(test)]
 
 use super::*;
+use std::iter;
 
 fn test_machine_states(input: &[i32], expected_output: &[i32]) {
     let mut machine = Machine::new(input.to_vec());
-    machine.run(std::iter::empty(), &mut Vec::new()).unwrap();
+    machine.run_to_end(std::iter::empty()).unwrap();
     assert_eq!(machine.code.as_slice(), expected_output);
 }
 
 fn test_machine_output(machine: &[i32], input: &[i32], expected_output: &[i32]) {
     let mut machine = Machine::new(machine.to_vec());
-    let mut machine_output = Vec::new();
-    machine
-        .run(input.iter().copied(), &mut machine_output)
-        .unwrap();
-    assert_eq!(machine_output.as_slice(), expected_output);
+    assert_eq!(
+        machine
+            .run_to_end(input.iter().copied())
+            .unwrap()
+            .as_slice(),
+        expected_output
+    );
 }
 
 #[test]
@@ -88,4 +91,14 @@ fn intcode_machine_eq_equal() {
 #[test]
 fn intcode_machine_eq_not_equal() {
     test_machine_states(&[1108, 5, 6, 2, 99], &[1108, 5, 0, 2, 99]);
+}
+
+#[test]
+fn intcode_machine_run_twice() {
+    let mut machine = Machine::new(vec![3, 0, 3, 1, 1, 0, 1, 0, 4, 0, 99]);
+    let mut output = Vec::new();
+    machine.run_with(iter::once(5), &mut output).unwrap();
+    machine.run_with(iter::once(3), &mut output).unwrap();
+    assert!(machine.done());
+    assert_eq!(output[0], 8);
 }
