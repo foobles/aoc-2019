@@ -41,18 +41,32 @@ pub fn password_count(lower: i32, upper: i32) -> usize {
     (lower..=upper).filter(|&x| is_valid_password(x)).count()
 }
 
-pub fn iter_digits(mut n: u32, digits: u32) -> impl Iterator<Item = u32> {
+fn permutation_swaps(len: usize) -> Vec<(usize, usize)> {
     let mut ret = Vec::new();
-    for _ in 0..digits {
-        ret.push(if n != 0 {
-            let d = n % 10;
-            n /= 10;
-            d
+    let mut c = vec![0; len];
+    let mut i = 0;
+    while i < len {
+        if c[i] < i {
+            ret.push(if i % 2 == 0 { (0, i) } else { (c[i], i) });
+            c[i] += 1;
+            i = 0;
         } else {
-            0
-        });
+            c[i] = 0;
+            i += 1;
+        }
     }
-    ret.into_iter().rev()
+    ret
+}
+
+pub fn permutations(mut vals: Vec<i32>) -> impl Iterator<Item = Vec<i32>> {
+    iter::once(vals.clone()).chain(
+        permutation_swaps(vals.len())
+            .into_iter()
+            .map(move |(i, j)| {
+                vals.swap(i, j);
+                vals.clone()
+            }),
+    )
 }
 
 #[cfg(test)]
@@ -99,21 +113,5 @@ mod tests {
     #[test]
     fn algo_test_password_excess_double() {
         assert!(!is_valid_password(122234));
-    }
-
-    #[test]
-    fn algo_test_iter_digits() {
-        assert_eq!(
-            &[1, 2, 5],
-            iter_digits(125, 3).collect::<Vec<_>>().as_slice()
-        );
-    }
-
-    #[test]
-    fn algo_test_iter_digits_leading_zero() {
-        assert_eq!(
-            &[0, 0, 4, 3, 2],
-            iter_digits(432, 5).collect::<Vec<_>>().as_slice()
-        );
     }
 }
