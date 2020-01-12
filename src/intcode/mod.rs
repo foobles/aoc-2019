@@ -16,7 +16,6 @@ pub enum Error {
     OutOfBounds,
     Eof,
     NoTermination,
-    IoError(std::io::Error),
 }
 
 macro_rules! access_args {
