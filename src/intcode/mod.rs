@@ -50,11 +50,11 @@ impl Machine {
         Machine { code, cur: 0 }
     }
 
-    pub fn run<I>(&mut self, input: I) -> Result<Vec<i32>, Error>
+    pub fn run<I>(&mut self, input: I, output: &mut Vec<i32>) -> Result<usize, Error>
     where
         I: IntoIterator<Item = i32>,
     {
-        let mut ret = Vec::new();
+        let output_init_len = output.len();
         let mut input_iter = input.into_iter();
         self.cur = 0;
         loop {
@@ -63,12 +63,12 @@ impl Machine {
                 OP_ADD => self.bin_op(|x, y| x + y),
                 OP_MUL => self.bin_op(|x, y| x * y),
                 OP_IN => self.store_input(&mut input_iter),
-                OP_OUT => self.output(&mut ret),
+                OP_OUT => self.output(output),
                 OP_JT => self.jump_if(|x| x != 0),
                 OP_JF => self.jump_if(|x| x == 0),
                 OP_LT => self.compare(|x, y| x < y),
                 OP_EQ => self.compare(|x, y| x == y),
-                OP_END => return Ok(ret),
+                OP_END => return Ok(output.len() - output_init_len),
                 n => return Err(Error::UnknownOpcode { opcode: n }),
             }?;
         }

@@ -2,18 +2,19 @@
 
 use super::*;
 
-fn test_machine_states(input: &[i32], output: &[i32]) {
+fn test_machine_states(input: &[i32], expected_output: &[i32]) {
     let mut machine = Machine::new(input.to_vec());
-    machine.run(std::iter::empty()).unwrap();
-    assert_eq!(machine.code.as_slice(), output);
+    machine.run(std::iter::empty(), &mut Vec::new()).unwrap();
+    assert_eq!(machine.code.as_slice(), expected_output);
 }
 
-fn test_machine_output(machine: &[i32], input: &[i32], output: &[i32]) {
+fn test_machine_output(machine: &[i32], input: &[i32], expected_output: &[i32]) {
     let mut machine = Machine::new(machine.to_vec());
-    assert_eq!(
-        machine.run(input.iter().copied()).unwrap().as_slice(),
-        output
-    );
+    let mut machine_output = Vec::new();
+    machine
+        .run(input.iter().copied(), &mut machine_output)
+        .unwrap();
+    assert_eq!(machine_output.as_slice(), expected_output);
 }
 
 #[test]

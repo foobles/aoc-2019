@@ -6,10 +6,9 @@ where
 {
     setting.into_iter().try_fold(Some(0), |p, s| {
         p.map_or(Ok(None), |input| {
-            machine
-                .clone()
-                .run([s, input].iter().copied())
-                .map(|v| v.get(0).copied())
+            let mut out = Vec::new();
+            machine.clone().run([s, input].iter().copied(), &mut out)?;
+            Ok(out.get(0).copied())
         })
     })
 }
