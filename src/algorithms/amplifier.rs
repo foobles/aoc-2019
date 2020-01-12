@@ -25,8 +25,7 @@ pub fn score_setting_feedback(machine: &Machine, setting: &[i32]) -> Result<Opti
     while !done {
         for m in &mut machines {
             let mut out = Vec::new();
-            m.run_with(feedback_input, &mut out)?;
-            if out.len() == 0 {
+            if m.run_with(feedback_input, &mut out)? == 0 {
                 return Ok(None);
             }
             done = m.done();
