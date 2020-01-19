@@ -1,3 +1,5 @@
+use std::io::{self, Write};
+
 #[derive(Clone)]
 pub struct Image {
     data: Vec<u8>,
@@ -53,6 +55,21 @@ impl Image {
                 .collect(),
             ..*self
         }
+    }
+
+    pub fn render_image(&self, writer: &mut impl Write) -> io::Result<()> {
+        let flat = self.flatten();
+        writeln!(writer, "P1 {} {} 1", self.width, self.height)?;
+        for n in flat.data {
+            if n > 1 {
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "Invalid pixel color",
+                ));
+            }
+            writeln!(writer, "{}", 1-n);
+        }
+        Ok(())
     }
 }
 

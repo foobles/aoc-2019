@@ -37,19 +37,10 @@ fn main() -> io::Result<()> {
     let mut string = String::new();
     File::open("data/image.txt")?.read_to_string(&mut string)?;
 
-    println!("{} | {} ", string.len(), string.len() % (6 * 25));
+    let img = Image::from_str_with_dims(&string[..string.len() - 2], 25, 6).unwrap();
 
-    let i = Image::from_str_with_dims(&string[..string.len() - 2], 25, 6).unwrap();
-
-    let mut min_layer_data = None;
-    for layer in i.get_layers() {
-        let data = layer.get_data();
-        min_layer_data = min_layer_data
-            .map(|x: [usize; 10]| if x[0] < data[0] { x } else { data })
-            .or(Some(data));
-    }
-
-    println!("{:?}", min_layer_data);
+    let mut output = File::create("out/image.ppm")?;
+    img.render_image(&mut output)?;
 
     Ok(())
 }
