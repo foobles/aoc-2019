@@ -59,7 +59,7 @@ impl Image {
 
     pub fn render_image(&self, writer: &mut impl Write) -> io::Result<()> {
         let flat = self.flatten();
-        writeln!(writer, "P1 {} {} 1", self.width, self.height)?;
+        writeln!(writer, "P1 {} {}", self.width, self.height)?;
         for n in flat.data {
             if n > 1 {
                 return Err(io::Error::new(
