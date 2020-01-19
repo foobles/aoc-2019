@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 mod algorithms;
+mod image;
 mod intcode;
 
 use std::fs::File;
