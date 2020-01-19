@@ -7,8 +7,8 @@ mod intcode;
 use std::fs::File;
 use std::io::{self, prelude::*, BufReader};
 
-use intcode::Machine;
 use image::Image;
+use intcode::Machine;
 
 fn parse_intcode<B: BufRead>(file: B) -> io::Result<Machine> {
     file.split(b',')
@@ -44,13 +44,9 @@ fn main() -> io::Result<()> {
     let mut min_layer_data = None;
     for layer in i.get_layers() {
         let data = layer.get_data();
-        min_layer_data = min_layer_data.map(|x: [usize; 10]| {
-            if x[0] < data[0] {
-                x
-            } else {
-                data
-            }
-        }).or(Some(data));
+        min_layer_data = min_layer_data
+            .map(|x: [usize; 10]| if x[0] < data[0] { x } else { data })
+            .or(Some(data));
     }
 
     println!("{:?}", min_layer_data);

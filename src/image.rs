@@ -35,6 +35,25 @@ impl Image {
             .chunks_exact(self.width * self.height)
             .map(|data| Layer { data })
     }
+
+    pub fn layer_size(&self) -> usize {
+        self.width * self.height
+    }
+
+    pub fn flatten(&self) -> Self {
+        Image {
+            data: (0..self.layer_size())
+                .map(|i| {
+                    self.get_layers()
+                        .map(|layer| layer.data[i])
+                        .skip_while(|&n| n == 2)
+                        .next()
+                        .unwrap_or(2)
+                })
+                .collect(),
+            ..*self
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -99,6 +118,18 @@ mod tests {
             }
             .get_data(),
             [1, 1, 2, 0, 1, 1, 0, 0, 0, 4]
+        );
+    }
+
+    #[test]
+    fn flatten() {
+        assert_eq!(
+            Image::from_str_with_dims("0222112222120000", 2, 2)
+                .unwrap()
+                .flatten()
+                .data
+                .as_slice(),
+            &[0, 1, 1, 0]
         );
     }
 }
