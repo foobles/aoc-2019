@@ -67,7 +67,7 @@ impl Image {
                     "Invalid pixel color",
                 ));
             }
-            writeln!(writer, "{}", 1-n);
+            writeln!(writer, "{}", 1-n)?;
         }
         Ok(())
     }
