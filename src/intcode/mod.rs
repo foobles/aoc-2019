@@ -6,6 +6,7 @@ use std::mem;
 pub struct Machine {
     code: Vec<i32>,
     cur: usize,
+    relative_base: i32,
     done: bool,
 }
 
@@ -13,6 +14,7 @@ pub struct Machine {
 pub enum Error {
     UnknownOpcode { opcode: i32 },
     UnknownOpmode { mode: i32 },
+    InvalidOpmode { mode: i32 },
     OutOfBounds,
     Eof,
     NoTermination,
@@ -28,10 +30,10 @@ macro_rules! access_args {
 
 macro_rules! access_arg {
     ($machine:expr, let $binding:pat = arg $idx:expr) => {
-        let $binding = $machine.get_arg($idx)?;
+        let $binding = $machine.get_val_arg($idx)?;
     };
-    ($machine:expr, let $binding:pat = rawarg $idx:expr) => {
-        let $binding = $machine.get_arg_raw($idx)?;
+    ($machine:expr, let $binding:pat = addr_arg $idx:expr) => {
+        let $binding = $machine.get_addr_arg($idx)?;
     };
 }
 
@@ -50,6 +52,7 @@ impl Machine {
         Machine {
             code,
             cur: 0,
+            relative_base: 0,
             done: false,
         }
     }
@@ -108,7 +111,7 @@ impl Machine {
         access_args! {self =>
             (let a = arg 0)
             (let b = arg 1)
-            (let r_addr = rawarg 2)
+            (let r_addr = addr_arg 2)
         }
         self.set(r_addr, op(a, b))?;
         self.inc(4)
@@ -119,7 +122,7 @@ impl Machine {
         I: Iterator<Item = i32>,
     {
         access_args! {self =>
-            (let r_addr = rawarg 0)
+            (let r_addr = addr_arg 0)
         }
         self.set(r_addr, input.next().ok_or(Error::Eof)?)?;
         self.inc(2)
@@ -193,12 +196,23 @@ impl Machine {
         self.code[self.cur] / 10_i32.pow(2 + idx as u32) % 10
     }
 
-    fn get_arg(&self, idx: usize) -> Result<i32, Error> {
+    fn get_val_arg(&self, idx: usize) -> Result<i32, Error> {
         let raw = self.get_arg_raw(idx);
         match self.get_arg_mode(idx) {
             0 => self.get(raw?),
             1 => raw,
+            2 => self.get(raw? + self.relative_base),
             n => Err(Error::UnknownOpmode { mode: n }),
+        }
+    }
+
+    fn get_addr_arg(&self, idx: usize) -> Result<i32, Error> {
+        let raw = self.get_arg_raw(idx);
+        match self.get_arg_mode(idx) {
+            0 => raw,
+            1 => Err(Error::InvalidOpmode { mode: 1 }),
+            2 => Ok(raw? + self.relative_base),
+            mode => Err(Error::UnknownOpmode { mode })
         }
     }
 }
