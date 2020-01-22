@@ -102,3 +102,28 @@ fn intcode_machine_run_twice() {
     assert!(machine.done());
     assert_eq!(output[0], 8);
 }
+
+#[test]
+fn intcode_machine_zero_relative_base() {
+    test_machine_states(&[1201, 2, 100, 0, 99], &[200, 2, 100, 0, 99]);
+}
+
+#[test]
+fn intcode_machine_pos_relative_base() {
+    test_machine_states(
+        &[109, 2, 2202, -2, 1, 0, 99],
+        &[-218, 2, 2202, -2, 1, 0, 99],
+    );
+}
+
+#[test]
+fn intcode_machine_neg_relative_base() {
+    test_machine_states(&[109, -3, 20001, 1, 3, 5, 99], &[109, -3, -2, 1, 3, 5, 99]);
+}
+
+#[test]
+fn intcode_machine_invalid_opcode() {
+    assert!(Machine::new(vec![11101, 1, 2, 3, 99])
+        .run_to_end(iter::empty())
+        .is_err())
+}

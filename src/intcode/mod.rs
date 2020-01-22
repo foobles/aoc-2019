@@ -45,6 +45,7 @@ const OP_JT: i32 = 5;
 const OP_JF: i32 = 6;
 const OP_LT: i32 = 7;
 const OP_EQ: i32 = 8;
+const OP_MRB: i32 = 9;
 const OP_END: i32 = 99;
 
 impl Machine {
@@ -97,6 +98,7 @@ impl Machine {
                 OP_JF => self.jump_if(|x| x == 0),
                 OP_LT => self.compare(|x, y| x < y),
                 OP_EQ => self.compare(|x, y| x == y),
+                OP_MRB => self.modify_relative_base(),
                 OP_END => {
                     self.done = true;
                     Ok(self.cur)
@@ -158,6 +160,14 @@ impl Machine {
         }
     }
 
+    fn modify_relative_base(&mut self) -> Result<usize, Error> {
+        access_args! {self =>
+            (let delta = arg 0)
+        }
+        self.relative_base += delta;
+        self.inc(2)
+    }
+
     fn compare<F: FnOnce(i32, i32) -> bool>(&mut self, comp: F) -> Result<usize, Error> {
         self.bin_op(|x, y| if comp(x, y) { 1 } else { 0 })
     }
@@ -212,7 +222,7 @@ impl Machine {
             0 => raw,
             1 => Err(Error::InvalidOpmode { mode: 1 }),
             2 => Ok(raw? + self.relative_base),
-            mode => Err(Error::UnknownOpmode { mode })
+            mode => Err(Error::UnknownOpmode { mode }),
         }
     }
 }
