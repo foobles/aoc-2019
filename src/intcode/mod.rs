@@ -58,6 +58,11 @@ impl Machine {
         }
     }
 
+    pub fn with_initial_size(mut code: Vec<i32>, size: usize) -> Self {
+        code.resize(size, 0);
+        Self::new(code)
+    }
+
     pub fn run_to_end<I>(&mut self, input: I) -> Result<Vec<i32>, Error>
     where
         I: IntoIterator<Item = i32>,

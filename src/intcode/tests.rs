@@ -127,3 +127,19 @@ fn intcode_machine_invalid_opcode() {
         .run_to_end(iter::empty())
         .is_err())
 }
+
+#[test]
+fn intcode_machine_larger_size() {
+    assert_eq!(
+        Machine::with_initial_size(vec![1, 2, 3], 5).code.as_slice(),
+        &[1, 2, 3, 0, 0]
+    );
+}
+
+#[test]
+fn intcode_machine_smaller_size() {
+    assert_eq!(
+        Machine::with_initial_size(vec![1, 2, 3], 2).code.as_slice(),
+        &[1, 2]
+    );
+}
