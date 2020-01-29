@@ -1,9 +1,9 @@
 use crate::intcode::{Error, Machine};
 use std::iter;
 
-pub fn score_setting<I>(machine: &Machine, setting: I) -> Result<Option<i32>, Error>
+pub fn score_setting<I>(machine: &Machine, setting: I) -> Result<Option<i64>, Error>
 where
-    I: IntoIterator<Item = i32>,
+    I: IntoIterator<Item = i64>,
 {
     setting.into_iter().try_fold(Some(0), |p, s| {
         p.map_or(Ok(None), |input| {
@@ -15,7 +15,7 @@ where
     })
 }
 
-pub fn score_setting_feedback(machine: &Machine, setting: &[i32]) -> Result<Option<i32>, Error> {
+pub fn score_setting_feedback(machine: &Machine, setting: &[i64]) -> Result<Option<i64>, Error> {
     let mut machines = vec![machine.clone(); setting.len()];
     let mut feedback_input = vec![0];
     for (&s, m) in setting.iter().zip(machines.iter_mut()) {
@@ -39,7 +39,7 @@ pub fn score_setting_feedback(machine: &Machine, setting: &[i32]) -> Result<Opti
 mod tests {
     use super::*;
 
-    fn test_score_setting(machine: &[i32], setting: &[i32], expected: i32) {
+    fn test_score_setting(machine: &[i64], setting: &[i64], expected: i64) {
         assert_eq!(
             score_setting(&Machine::new(machine.to_vec()), setting.iter().copied())
                 .unwrap()
@@ -48,7 +48,7 @@ mod tests {
         );
     }
 
-    fn test_score_feedback_setting(machine: &[i32], setting: &[i32], expected: i32) {
+    fn test_score_feedback_setting(machine: &[i64], setting: &[i64], expected: i64) {
         assert_eq!(
             score_setting_feedback(&Machine::new(machine.to_vec()), setting)
                 .unwrap()

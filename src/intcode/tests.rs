@@ -3,13 +3,13 @@
 use super::*;
 use std::iter;
 
-fn test_machine_states(input: &[i32], expected_output: &[i32]) {
+fn test_machine_states(input: &[i64], expected_output: &[i64]) {
     let mut machine = Machine::new(input.to_vec());
     machine.run_to_end(std::iter::empty()).unwrap();
     assert_eq!(machine.code.as_slice(), expected_output);
 }
 
-fn test_machine_output(machine: &[i32], input: &[i32], expected_output: &[i32]) {
+fn test_machine_output(machine: &[i64], input: &[i64], expected_output: &[i64]) {
     let mut machine = Machine::new(machine.to_vec());
     assert_eq!(
         machine
