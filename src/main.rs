@@ -14,7 +14,7 @@ fn parse_intcode<B: BufRead>(file: B) -> io::Result<Machine> {
     file.split(b',')
         .map(|x| Ok(String::from_utf8(x?).unwrap().parse().unwrap()))
         .collect::<Result<_, _>>()
-        .map(Machine::new)
+        .map(|v| Machine::with_initial_size(v, 2048))
 }
 
 fn parse_orbits<B: BufRead>(file: B) -> io::Result<Vec<(String, String)>> {
@@ -35,12 +35,9 @@ fn main() -> io::Result<()> {
     //    Ok(())
 
     let mut string = String::new();
-    File::open("data/image.txt")?.read_to_string(&mut string)?;
+    let mut machine = parse_intcode(BufReader::new(File::open("data/boost.icm")?))?;
 
-    let img = Image::from_str_with_dims(&string[..string.len() - 2], 25, 6).unwrap();
-
-    let mut output = File::create("out/image.ppm")?;
-    img.render_image(&mut output)?;
+    println!("{:?}", machine.run_to_end(vec![2]).unwrap());
 
     Ok(())
 }
