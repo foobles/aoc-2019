@@ -15,11 +15,11 @@ pub struct ParseAsteroidFieldError;
 pub struct Point(pub isize, pub isize);
 
 impl Point {
-    fn x(self) -> isize {
+    pub fn x(self) -> isize {
         self.0
     }
 
-    fn y(self) -> isize {
+    pub fn y(self) -> isize {
         self.1
     }
 }
