@@ -1,5 +1,5 @@
+use std::ops::{Add, AddAssign, Index, Mul, MulAssign};
 use std::str::FromStr;
-use std::ops::{Index, Add, Mul, AddAssign, MulAssign};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AsteroidField {
@@ -49,6 +49,20 @@ impl Mul<isize> for Point {
 impl MulAssign<isize> for Point {
     fn mul_assign(&mut self, rhs: isize) {
         *self = *self * rhs;
+    }
+}
+
+impl Index<Point> for AsteroidField {
+    type Output = bool;
+
+    fn index(&self, idx: Point) -> &bool {
+        assert!(
+            idx.x() >= 0
+                && idx.y() >= 0
+                && (idx.x() as usize) < self.width
+                && (idx.y() as usize) < self.height
+        );
+        &self.field[idx.x() as usize + idx.y() as usize * self.width]
     }
 }
 
@@ -144,5 +158,16 @@ mod tests {
         let mut p = Point(4, -5);
         p *= -300;
         assert_eq!(Point(-1200, 1500), p);
+    }
+
+    #[test]
+    fn asteroid_index() {
+        assert!(
+            !AsteroidField {
+                width: 2,
+                height: 3,
+                field: vec![true, false, true, true, true, false]
+            }[Point(1, 2)]
+        )
     }
 }
