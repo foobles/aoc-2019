@@ -1,4 +1,5 @@
 use std::str::FromStr;
+use std::ops::{Index, Add, Mul, AddAssign, MulAssign};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AsteroidField {
@@ -9,6 +10,47 @@ pub struct AsteroidField {
 
 #[derive(Copy, Clone, Debug)]
 pub struct ParseAsteroidFieldError;
+
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+pub struct Point(pub isize, pub isize);
+
+impl Point {
+    fn x(self) -> isize {
+        self.0
+    }
+
+    fn y(self) -> isize {
+        self.1
+    }
+}
+
+impl Add for Point {
+    type Output = Point;
+
+    fn add(self, rhs: Point) -> Point {
+        Point(self.x() + rhs.x(), self.y() + rhs.y())
+    }
+}
+
+impl AddAssign for Point {
+    fn add_assign(&mut self, rhs: Point) {
+        *self = *self + rhs;
+    }
+}
+
+impl Mul<isize> for Point {
+    type Output = Point;
+
+    fn mul(self, rhs: isize) -> Point {
+        Point(self.x() * rhs, self.y() * rhs)
+    }
+}
+
+impl MulAssign<isize> for Point {
+    fn mul_assign(&mut self, rhs: isize) {
+        *self = *self * rhs;
+    }
+}
 
 impl FromStr for AsteroidField {
     type Err = ParseAsteroidFieldError;
@@ -44,7 +86,7 @@ impl FromStr for AsteroidField {
 
 #[cfg(test)]
 mod tests {
-    use crate::algorithms::asteroid::AsteroidField;
+    use super::*;
 
     #[test]
     fn asteroid_parse() {
@@ -78,5 +120,29 @@ mod tests {
             },
             "".parse::<AsteroidField>().unwrap()
         );
+    }
+
+    #[test]
+    fn point_add() {
+        assert_eq!(Point(5, -2), Point(2, 3) + Point(3, -5));
+    }
+
+    #[test]
+    fn point_add_assign() {
+        let mut p = Point(1, 2);
+        p += Point(5, -10);
+        assert_eq!(p, Point(6, -8));
+    }
+
+    #[test]
+    fn point_mul() {
+        assert_eq!(Point(10, 5), Point(2, 1) * 5);
+    }
+
+    #[test]
+    fn point_mul_assign() {
+        let mut p = Point(4, -5);
+        p *= -300;
+        assert_eq!(Point(-1200, 1500), p);
     }
 }
