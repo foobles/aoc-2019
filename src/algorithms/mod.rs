@@ -1,4 +1,5 @@
 pub mod amplifier;
+pub mod asteroid;
 pub mod orbits;
 pub mod wires;
 
