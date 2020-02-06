@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign, Index, Mul, MulAssign, Sub, SubAssign};
+use std::ops::{Add, AddAssign, Index, IndexMut, Mul, MulAssign, Sub, SubAssign};
 use std::str::FromStr;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -6,6 +6,12 @@ pub struct AsteroidField {
     width: usize,
     height: usize,
     field: Vec<bool>,
+}
+
+impl AsteroidField {
+    pub fn is_in_bounds(&self, p: Point) -> bool {
+        p.x() >= 0 && p.y() >= 0 && (p.x() as usize) < self.width && (p.y() as usize) < self.height
+    }
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -70,13 +76,15 @@ impl Index<Point> for AsteroidField {
     type Output = bool;
 
     fn index(&self, idx: Point) -> &bool {
-        assert!(
-            idx.x() >= 0
-                && idx.y() >= 0
-                && (idx.x() as usize) < self.width
-                && (idx.y() as usize) < self.height
-        );
+        assert!(self.is_in_bounds(idx));
         &self.field[idx.x() as usize + idx.y() as usize * self.width]
+    }
+}
+
+impl IndexMut<Point> for AsteroidField {
+    fn index_mut(&mut self, idx: Point) -> &mut bool {
+        assert!(self.is_in_bounds(idx));
+        &mut self.field[idx.x() as usize + idx.y() as usize * self.width]
     }
 }
 
@@ -187,6 +195,16 @@ mod tests {
     }
 
     #[test]
+    fn asteroid_is_in_bounds() {
+        let field = "####\n#   ".parse::<AsteroidField>().unwrap();
+        assert!(field.is_in_bounds(Point(1, 1)));
+        assert!(!field.is_in_bounds(Point(4, 0)));
+        assert!(!field.is_in_bounds(Point(0, 2)));
+        assert!(!field.is_in_bounds(Point(-1, 1)));
+        assert!(!field.is_in_bounds(Point(3, -2)));
+    }
+
+    #[test]
     fn asteroid_index() {
         assert!(
             !AsteroidField {
@@ -195,5 +213,12 @@ mod tests {
                 field: vec![true, false, true, true, true, false]
             }[Point(1, 2)]
         )
+    }
+
+    #[test]
+    fn asteroid_index_mut() {
+        let mut field = " # \n###\n# #".parse::<AsteroidField>().unwrap();
+        field[Point(1, 1)] = false;
+        assert_eq!(&field.field[3..6], &[true, false, true]);
     }
 }
