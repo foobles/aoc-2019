@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign, Index, Mul, MulAssign};
+use std::ops::{Add, AddAssign, Index, Mul, MulAssign, Sub, SubAssign};
 use std::str::FromStr;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -35,6 +35,20 @@ impl Add for Point {
 impl AddAssign for Point {
     fn add_assign(&mut self, rhs: Point) {
         *self = *self + rhs;
+    }
+}
+
+impl Sub for Point {
+    type Output = Point;
+
+    fn sub(self, rhs: Point) -> Point {
+        Point(self.x() - rhs.x(), self.y() - rhs.y())
+    }
+}
+
+impl SubAssign for Point {
+    fn sub_assign(&mut self, rhs: Point) {
+        *self = *self - rhs;
     }
 }
 
@@ -146,6 +160,18 @@ mod tests {
         let mut p = Point(1, 2);
         p += Point(5, -10);
         assert_eq!(p, Point(6, -8));
+    }
+
+    #[test]
+    fn point_sub() {
+        assert_eq!(Point(1, 2), Point(5, -2) - Point(4, -4));
+    }
+
+    #[test]
+    fn point_sub_assign() {
+        let mut p = Point(5, 1);
+        p -= Point(1, 10);
+        assert_eq!(p, Point(4, -9));
     }
 
     #[test]
